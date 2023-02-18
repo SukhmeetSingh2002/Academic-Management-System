@@ -1,14 +1,16 @@
 /* This file will contain the SQL statements to create the tables and insert the data into the tables. */
 -- Create the table ug_curriculum which contains Program Core and Program Electives for particular batch
-CREATE TABLE batch (
-   batchYear INT NOT NULL,
-   min_credits INT NOT NULL,
-   min_program_electives INT NOT NULL,
-   PRIMARY KEY (batchYear)
+CREATE TABLE batch
+(
+    batchYear             INT NOT NULL,
+    min_credits           INT NOT NULL,
+    min_program_electives INT NOT NULL,
+    PRIMARY KEY (batchYear)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
-CREATE OR REPLACE PROCEDURE insert_batch_data(batchYear INT, min_credits INT, min_program_electives INT) AS $$
+CREATE OR REPLACE PROCEDURE insert_batch_data(batchYear INT, min_credits INT, min_program_electives INT) AS
+$$
 BEGIN
     INSERT INTO batch VALUES (batchYear, min_credits, min_program_electives);
 END;
@@ -19,17 +21,20 @@ $$ LANGUAGE plpgsql;
 
 
 -- Create the table
-CREATE TABLE student (
+CREATE TABLE student
+(
     entry_number VARCHAR(50) NOT NULL UNIQUE,
-    name VARCHAR(50) NOT NULL,
-    email VARCHAR(50) NOT NULL,
-    batch INT NOT NULL,
-    FOREIGN KEY (batch) REFERENCES batch(batchYear),
+    name         VARCHAR(50) NOT NULL,
+    email        VARCHAR(50) NOT NULL,
+    batch        INT         NOT NULL,
+    FOREIGN KEY (batch) REFERENCES batch (batchYear),
     PRIMARY KEY (entry_number)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
-CREATE OR REPLACE PROCEDURE insert_student_data(entry_number VARCHAR(50), name VARCHAR(50), email VARCHAR(50), batch INT) AS $$
+CREATE OR REPLACE PROCEDURE insert_student_data(entry_number VARCHAR(50), name VARCHAR(50), email VARCHAR(50),
+                                                batch INT) AS
+$$
 BEGIN
     INSERT INTO student VALUES (entry_number, name, email, batch);
 END;
@@ -39,38 +44,49 @@ $$ LANGUAGE plpgsql;
 
 
 -- create the table
-CREATE TABLE instructor (
-    instructor_id INT NOT NULL UNIQUE,
-    name VARCHAR(50) NOT NULL,
-    email VARCHAR(50) NOT NULL,
-    department VARCHAR(50) NOT NULL,
+CREATE TABLE instructor
+(
+    instructor_id INT         NOT NULL UNIQUE,
+    name          VARCHAR(50) NOT NULL,
+    email         VARCHAR(50) NOT NULL,
+    department    VARCHAR(50) NOT NULL,
     PRIMARY KEY (instructor_id)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
-CREATE OR REPLACE PROCEDURE insert_instructor_data(instructor_id INT, name VARCHAR(50), email VARCHAR(50), department VARCHAR(50)) AS $$
+CREATE OR REPLACE PROCEDURE insert_instructor_data(instructor_id INT, name VARCHAR(50), email VARCHAR(50),
+                                                   department VARCHAR(50)) AS
+$$
 BEGIN
     INSERT INTO instructor VALUES (instructor_id, name, email, department);
 END;
 $$ LANGUAGE plpgsql;
 
+call insert_instructor_data(1, 'John', 'John@gmail.com', 'CSE');
+call insert_instructor_data(2, 'Barry', 'Barry@gmal.com', 'CSE');
+call insert_instructor_data(3, 'Clark', 'Clark@gmail.com', 'CSE');
+
 -- create the table
-CREATE TABLE semester (
-    semester VARCHAR(50) NOT NULL UNIQUE,
-    academic_year INT NOT NULL,
-    is_current_semester BOOLEAN NOT NULL,
+CREATE TABLE semester
+(
+    semester            VARCHAR(50) NOT NULL UNIQUE,
+    academic_year       INT         NOT NULL,
+    is_current_semester BOOLEAN     NOT NULL,
     PRIMARY KEY (semester)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
-CREATE OR REPLACE PROCEDURE insert_semester_data(semesterS VARCHAR(50), academic_year INT, is_current_semester BOOLEAN) AS $$
+CREATE OR REPLACE PROCEDURE insert_semester_data(semesterS VARCHAR(50), academic_year INT,
+                                                 is_current_semester BOOLEAN) AS
+$$
 BEGIN
     INSERT INTO semester VALUES (semesterS, academic_year, is_current_semester);
 END;
 $$ LANGUAGE plpgsql;
 
 -- update the current semester stored procedure pgSQL
-CREATE OR REPLACE PROCEDURE update_current_semester(semesterP VARCHAR(50), academic_yearP INT) AS $$
+CREATE OR REPLACE PROCEDURE update_current_semester(semesterP VARCHAR(50), academic_yearP INT) AS
+$$
 BEGIN
     UPDATE semester SET is_current_semester = FALSE WHERE is_current_semester = TRUE;
     UPDATE semester SET is_current_semester = TRUE WHERE semester = semesterP AND academic_year = academic_yearP;
@@ -90,7 +106,6 @@ $$ LANGUAGE plpgsql;
 -- $$ LANGUAGE plsql;
 
 
-
 -- call insert_student_data(1, 'John', 'john@wqer.com');
 
 -- Design a database which comprises of the following concepts:
@@ -107,110 +122,156 @@ $$ LANGUAGE plpgsql;
 -- 5. Grade entry by Course Instructors: Instructors upload the grades of students in a course via a file.
 -- 6. User Authentication: All the users must be authenticated before login.
 
+
 -- TODO: check prerequisites
 -- Create the table
-CREATE TABLE course_catalog (
-    course_code VARCHAR(50) NOT NULL UNIQUE,
-    course_name VARCHAR(50) NOT NULL,
+CREATE TABLE course_catalog
+(
+    course_code      VARCHAR(50) NOT NULL UNIQUE,
+    course_name      VARCHAR(50) NOT NULL,
     credit_structure VARCHAR(50) NOT NULL,
-    prerequisites VARCHAR(50),
-    FOREIGN KEY (prerequisites) REFERENCES course_catalog(course_code),
     PRIMARY KEY (course_code)
 );
 
+-- create prerequisites table
+CREATE TABLE prerequisites
+(
+    course_code              VARCHAR(50) NOT NULL,
+    prerequisite_course_code VARCHAR(50) NOT NULL,
+    FOREIGN KEY (course_code) REFERENCES course_catalog (course_code),
+    FOREIGN KEY (prerequisite_course_code) REFERENCES course_catalog (course_code),
+    PRIMARY KEY (course_code, prerequisite_course_code)
+);
+
+
 -- Insert the data procedure to insert the data into the table pgSQL
-CREATE OR REPLACE PROCEDURE insert_course_catalog_data(course_code VARCHAR(50), course_name VARCHAR(50), credit_structure VARCHAR(50), prerequisites INT) AS $$
+CREATE OR REPLACE PROCEDURE insert_course_catalog_data(course_code VARCHAR(50), course_name VARCHAR(50),
+                                                       credit_structure VARCHAR(50)) AS
+$$
 BEGIN
-    INSERT INTO course_catalog VALUES (course_code, course_name, credit_structure, prerequisites);
+    INSERT INTO course_catalog VALUES (course_code, course_name, credit_structure);
 END;
 $$ LANGUAGE plpgsql;
 
--- call insert_course_catalog_data('CS 101', 'Introduction to Computer Science', '3-1-0', NULL);
--- INSET with prerequisites as course id 2
--- call insert_course_catalog_data('CS 201', 'Database Management System', '3-1-0', 2);
+-- insert prerequisites
+CREATE OR REPLACE PROCEDURE insert_prerequisites_data(course_code VARCHAR(50), prerequisite_course_code VARCHAR(50)) AS
+$$
+BEGIN
+    INSERT INTO prerequisites VALUES (course_code, prerequisite_course_code);
+END;
+$$ LANGUAGE plpgsql;
+
+call insert_course_catalog_data('CS 101', 'Introduction to Computer Science', '3-1-0');
+call insert_course_catalog_data('CS 102', 'Introduction to Computer Science Lab', '0-0-3');
+call insert_course_catalog_data('CS 201', 'Data Structures and Algorithms', '3-1-0');
+call insert_prerequisites_data('CS 201', 'CS 101');
+call insert_prerequisites_data('CS 201', 'CS 102');
+call insert_prerequisites_data('CS 201', 'CS 103');
+call insert_prerequisites_data('CS 201', 'CS 104');
+
 -- Create the table
-CREATE TABLE course_offerings (
-    course_code VARCHAR(50) NOT NULL,
-    semester VARCHAR(50) NOT NULL,
-    instructor_id INT NOT NULL,
-    cgpa_constraint FLOAT NOT NULL,
-    FOREIGN KEY (course_code) REFERENCES course_catalog(course_code),
-    FOREIGN KEY (instructor_id) REFERENCES instructor(instructor_id),
-    FOREIGN KEY (semester) REFERENCES semester(semester), /* semester is a table which contains all the semesters */
+CREATE TABLE course_offerings
+(
+    course_code     VARCHAR(50) NOT NULL,
+    semester        VARCHAR(50) NOT NULL,
+    instructor_id   INT         NOT NULL,
+    cgpa_constraint FLOAT       NOT NULL,
+    FOREIGN KEY (course_code) REFERENCES course_catalog (course_code),
+    FOREIGN KEY (instructor_id) REFERENCES instructor (instructor_id),
+    FOREIGN KEY (semester) REFERENCES semester (semester), /* semester is a table which contains all the semesters */
     PRIMARY KEY (course_code, semester)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
-CREATE OR REPLACE PROCEDURE insert_course_offerings_data(course_code VARCHAR(50), semester VARCHAR(50), instructor_id INT, cgpa_constraint FLOAT) AS $$
+CREATE OR REPLACE PROCEDURE insert_course_offerings_data(course_code VARCHAR(50), semester VARCHAR(50),
+                                                         instructor_id INT, cgpa_constraint FLOAT) AS
+$$
 BEGIN
     INSERT INTO course_offerings VALUES (course_code, semester, instructor_id, cgpa_constraint);
 END;
 $$ LANGUAGE plpgsql;
 
--- call insert_course_offerings_data('CS 101', 'Fall 2019', 1, 7.0);
+call insert_course_offerings_data('CS 101', 'Fall 2023', 1, 7.0);
 -- Create the table
-CREATE TABLE student_course_registration (
+CREATE TABLE student_course_registration
+(
     student_entry_number VARCHAR(50) NOT NULL,
-    course_code VARCHAR(50) NOT NULL,
-    semester VARCHAR(50) NOT NULL,
-    FOREIGN KEY (student_entry_number) REFERENCES student(entry_number),
-    FOREIGN KEY (semester) REFERENCES semester(semester),
-    FOREIGN KEY (course_code, semester) REFERENCES course_offerings(course_code, semester),
+    course_code          VARCHAR(50) NOT NULL,
+    semester             VARCHAR(50) NOT NULL,
+    status               VARCHAR(50) NOT NULL,
+    FOREIGN KEY (student_entry_number) REFERENCES student (entry_number),
+    FOREIGN KEY (semester) REFERENCES semester (semester),
+    FOREIGN KEY (course_code, semester) REFERENCES course_offerings (course_code, semester),
     PRIMARY KEY (student_entry_number, course_code, semester)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
-CREATE OR REPLACE PROCEDURE insert_student_course_registration_data(student_entry_number INT, course_code VARCHAR(50), semester VARCHAR(50)) AS $$
+
+CREATE OR REPLACE PROCEDURE insert_student_course_registration_data(student_entry_number VARCHAR(50),
+                                                                    course_code VARCHAR(50),
+                                                                    semester VARCHAR(50),
+                                                                    status VARCHAR(50)) AS
+$$
 BEGIN
-    INSERT INTO student_course_registration VALUES (student_entry_number, course_code, semester);
+    INSERT INTO student_course_registration VALUES (student_entry_number, course_code, semester, status);
 END;
 $$ LANGUAGE plpgsql;
 
--- call insert_student_course_registration_data(2019CS101, 'CS 101', 'Fall 2019');
-
+call insert_student_course_registration_data('2020CS103', 'CS 101', 'Fall 2023', 'ON_GOING');
 -- Create the table
-CREATE TABLE grade_entry (
+CREATE TABLE grade_entry
+(
     student_entry_number VARCHAR(50) NOT NULL,
-    course_code VARCHAR(50) NOT NULL,
-    semester VARCHAR(50) NOT NULL,
-    grade VARCHAR(50) NOT NULL,
-    FOREIGN KEY (student_entry_number) REFERENCES student(entry_number),
-    FOREIGN KEY (course_code, semester) REFERENCES course_offerings(course_code, semester),
-    FOREIGN KEY (semester) REFERENCES semester(semester),
+    course_code          VARCHAR(50) NOT NULL,
+    semester             VARCHAR(50) NOT NULL,
+    grade                VARCHAR(50) NOT NULL,
+    FOREIGN KEY (student_entry_number) REFERENCES student (entry_number),
+    FOREIGN KEY (course_code, semester) REFERENCES course_offerings (course_code, semester),
+    FOREIGN KEY (semester) REFERENCES semester (semester),
     PRIMARY KEY (student_entry_number, course_code, semester)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
-CREATE OR REPLACE PROCEDURE insert_grade_entry_data(student_entry_number INT, course_code VARCHAR(50), semester VARCHAR(50), grade VARCHAR(50)) AS $$
+CREATE OR REPLACE PROCEDURE insert_grade_entry_data(student_entry_number VARCHAR(50), course_code VARCHAR(50),
+                                                    semester VARCHAR(50), grade VARCHAR(50)) AS
+$$
 BEGIN
     INSERT INTO grade_entry VALUES (student_entry_number, course_code, semester, grade);
 END;
 $$ LANGUAGE plpgsql;
 
--- call insert_grade_entry_data(1, 'CS 101', 'Fall 2019', 'A');
+call insert_grade_entry_data('2019CS101', 'CS 101', 'Fall 2023', 'A');
 
 -- Create the table
-CREATE TABLE user_authentication (
-    user_id INT NOT NULL UNIQUE,
-    password VARCHAR(50) NOT NULL,
-    role VARCHAR(50) NOT NULL,
-    PRIMARY KEY (user_id)
+CREATE TABLE user_authentication
+(
+    user_name VARCHAR(50) NOT NULL UNIQUE,
+    password  VARCHAR(50) NOT NULL,
+    role      VARCHAR(50) NOT NULL,
+    PRIMARY KEY (user_name)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
-CREATE OR REPLACE PROCEDURE insert_user_authentication_data(user_id INT, password VARCHAR(50), role VARCHAR(50)) AS $$
+CREATE OR REPLACE PROCEDURE insert_user_authentication_data(user_name VARCHAR(50), password VARCHAR(50), role VARCHAR(50)) AS
+$$
 BEGIN
-    INSERT INTO user_authentication VALUES (user_id, password, role);
+    INSERT INTO user_authentication VALUES (user_name, password, role);
 END;
 $$ LANGUAGE plpgsql;
 
--- call insert_user_authentication_data(1, 'password', 'student');
+-- call insert_user_authentication_data('John', '123', 'Student');
 
 
 -- create a stored procedure to deregister a course
-CREATE OR REPLACE PROCEDURE deregister_course(_student_entry_number INT, _course_code VARCHAR(50), _semester VARCHAR(50)) AS $$
+CREATE OR REPLACE PROCEDURE deregister_course(_student_entry_number INT, _course_code VARCHAR(50),
+                                              _semester VARCHAR(50)) AS
+$$
 BEGIN
-    DELETE FROM student_course_registration WHERE student_id = _student_entry_number AND course_code = _course_code AND semester = _semester;
+    DELETE
+    FROM student_course_registration
+    WHERE student_entry_number = _student_entry_number
+      AND course_code = _course_code
+      AND semester = _semester;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -228,17 +289,19 @@ $$ LANGUAGE plpgsql;
 -- BTP Capstone credits.
 
 -- Create the table ug_curriculum which contains Program Core and Program Electives for particular batch
-CREATE TABLE ug_curriculum (
-    batch INT NOT NULL,
+CREATE TABLE ug_curriculum
+(
+    batch       INT         NOT NULL,
     course_code VARCHAR(50) NOT NULL,
     course_type VARCHAR(50) NOT NULL,
-    FOREIGN KEY (course_code) REFERENCES course_catalog(course_code),
-    FOREIGN KEY (batch) REFERENCES batch(batchYear),
+    FOREIGN KEY (course_code) REFERENCES course_catalog (course_code),
+    FOREIGN KEY (batch) REFERENCES batch (batchYear),
     PRIMARY KEY (batch, course_code)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
-CREATE OR REPLACE PROCEDURE insert_ug_curriculum_data(batch INT, course_code VARCHAR(50), course_type VARCHAR(50)) AS $$
+CREATE OR REPLACE PROCEDURE insert_ug_curriculum_data(batch INT, course_code VARCHAR(50), course_type VARCHAR(50)) AS
+$$
 BEGIN
     INSERT INTO ug_curriculum VALUES (batch, course_code, course_type);
 END;
@@ -249,3 +312,26 @@ $$ LANGUAGE plpgsql;
 -- call insert_ug_curriculum_data(2019, 'CS 103', 'PE');
 -- call insert_ug_curriculum_data(2019, 'CS 104', 'PE');
 
+
+-- make login_log table
+CREATE TABLE login_log
+(
+    user_name VARCHAR(50) NOT NULL,
+    login_time TIMESTAMP NOT NULL,
+    logout_time TIMESTAMP ,
+    login_id VARCHAR(50) NOT NULL,
+    is_logged_in BOOLEAN NOT NULL,
+    FOREIGN KEY (user_name) REFERENCES user_authentication (user_name),
+    PRIMARY KEY (user_name, login_time)
+);
+
+-- create event log table
+CREATE TABLE event_log
+(
+    user_name VARCHAR(50) NOT NULL,
+    event_time TIMESTAMP NOT NULL,
+    event VARCHAR(50) NOT NULL,
+    login_id VARCHAR(50) NOT NULL,
+    FOREIGN KEY (user_name) REFERENCES user_authentication (user_name),
+    PRIMARY KEY (user_name, event_time)
+);
