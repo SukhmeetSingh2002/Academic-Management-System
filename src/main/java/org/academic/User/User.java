@@ -1,12 +1,15 @@
 package org.academic.User;
 
 public interface User {
-    public String getUserName();
-    public String getPassword();
+    String getUserName();
+    String getPassword();
 
-    public void setUserName(String userName);
-    public void setPassword(String password);
+    void setUserName(String userName);
+    void setPassword(String password);
 
+    String[] getOptions();
+
+    String updateProfile(String password);
 
 
 }

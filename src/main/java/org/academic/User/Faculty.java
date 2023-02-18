@@ -36,4 +36,28 @@ public class Faculty implements User {
         this.password = password;
     }
 
+    /**
+     * @return the options available to the user
+     */
+    @Override
+    public String[] getOptions() {
+        return new String[0];
+    }
+
+    /**
+     * @param password new password
+     * @return the status of the operation
+     */
+    @Override
+    public String updateProfile(String password) {
+        return null;
+    }
+
+//    options available to faculty are
+//      1. Add a course offering
+//          i. Add some CGPA constraints
+//      2. Give grades to students
+//          i. First download the all students details
+//          ii. Then upload the grades for each student in the course offering in a csv file
+//      3. View course offering
 }

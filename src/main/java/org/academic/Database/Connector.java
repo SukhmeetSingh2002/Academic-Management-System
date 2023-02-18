@@ -7,11 +7,11 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class Connector {
-    private static Properties readProperties(String fileName) {
+    private static Properties readProperties() {
         Properties properties = new Properties();
         FileInputStream fileInputStream = null;
         try {
-            fileInputStream = new FileInputStream(fileName);
+            fileInputStream = new FileInputStream("src/main/resources/database.properties");
             properties.load(fileInputStream);
         } catch (Exception e) {
             e.printStackTrace();
@@ -29,7 +29,7 @@ public class Connector {
 
     public static Connection getConnection() {
         Connection connection = null;
-        Properties properties = readProperties("src/main/resources/database.properties");
+        Properties properties = readProperties();
         String url = properties.getProperty("url");
         String user = properties.getProperty("user");
         String password = properties.getProperty("password");
