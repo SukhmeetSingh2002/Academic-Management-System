@@ -1,6 +1,8 @@
 package org.academic.Services;
 
 import org.academic.Database.Connector;
+import org.academic.Database.Course_CatalogDTO;
+import org.academic.cli.OutputHandler;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -60,6 +62,28 @@ public class Course_catalog {
         }
         return creditStructure;
 
+    }
+
+    public static Course_CatalogDTO[] get_courses() {
+        String query = "SELECT * FROM course_catalog";
+        ArrayList<Course_CatalogDTO> courses = new ArrayList<>();
+        try {
+            Connection conn = Connector.getConnection();
+            ResultSet rs = conn.createStatement().executeQuery(query);
+            while (rs.next()) {
+                String course_code = rs.getString("course_code");
+                String course_name = rs.getString("course_name");
+                String[] course_prerequisites = getCoursePrerequisites(course_code);
+                String credit_structure = rs.getString("credit_structure");
+
+                courses.add(new Course_CatalogDTO(course_code, course_name, course_prerequisites, credit_structure));
+            }
+        } catch (SQLException e) {
+            OutputHandler.logError("Error in getting courses"+e.getMessage());
+            courses = new ArrayList<>();
+            courses.add(new Course_CatalogDTO("Error", "Error", new String[]{"Error"}, "Error"));
+        }
+        return courses.toArray(new Course_CatalogDTO[0]);
     }
 
 }

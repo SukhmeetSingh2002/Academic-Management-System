@@ -2,11 +2,18 @@ package org.academic.cli;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.academic.Database.GiveGradeDTO;
+
 public class OutputHandler {
     private static final Path errorLog = Path.of("Error.log");
+    private static Path ungradedCSV = Path.of("ungraded.csv");
 
     private OutputHandler() {
 
+    }
+
+    public static void printS(String message) {
+        System.out.print(message);
     }
 
     public static void print(String message) {
@@ -20,7 +27,7 @@ public class OutputHandler {
     public static void logError(String message) {
 //        logg the error in a file opened Error.log
         try {
-            Files.writeString(errorLog, message + "Time: " + java.time.LocalDateTime.now() + " " + System.lineSeparator(), Files.exists(errorLog) ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE); // append to file if it exists, otherwise create it
+            Files.writeString(errorLog, message + " Time: " + java.time.LocalDateTime.now() + " " + System.lineSeparator(), Files.exists(errorLog) ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE); // append to file if it exists, otherwise create it
         } catch (Exception e) {
             System.out.println("Error logging error");
         }
@@ -92,6 +99,20 @@ public class OutputHandler {
             headers[i] = "Column " + (i + 1);
         }
         table(data, headers, columnWidths);
+    }
+
+    // write to file in csv format (comma separated values) 
+    public static void writeToFile(String fileName, GiveGradeDTO[] res) {
+        ungradedCSV = Path.of(fileName);
+        try {
+            Files.writeString(ungradedCSV, "StudentID,StudentName,CourseID,Semester,Grade" + System.lineSeparator());
+            for (GiveGradeDTO giveGradeDTO : res) {
+                Files.writeString(ungradedCSV, giveGradeDTO.studentID() + "," + giveGradeDTO.studentName() + "," + giveGradeDTO.courseID() + "," + giveGradeDTO.semester() + "," + giveGradeDTO.grade() + System.lineSeparator(), Files.exists(ungradedCSV) ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE);
+            }
+        } catch (Exception e) {
+            System.out.println("Error writing to file");
+            OutputHandler.logError("Error writing to file"+e.getMessage());
+        }
     }
 
 

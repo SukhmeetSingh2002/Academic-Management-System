@@ -27,4 +27,21 @@ public class InstructorDAL {
         }
         return instructorName;
     }
+
+    public static String getFacultyId(String username) {
+        String facultyId = null;
+        String query = "SELECT * FROM instructor WHERE username = '" + username + "'";
+        try {
+            Connection conn = Connector.getConnection();
+            ResultSet rs = conn.createStatement().executeQuery(query);
+            if (rs.next()) {
+                facultyId = rs.getString("instructor_id");
+            }
+        } catch (SQLException e) {
+            facultyId = "Error";
+            OutputHandler.logError("Get faculty id error:"+e.getMessage());
+        }
+        return facultyId;
+    }
+
 }

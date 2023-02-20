@@ -1,17 +1,45 @@
 package org.academic.Authentication;
 
+import org.academic.Services.Course_Offerings;
+import org.academic.Services.InstructorDAL;
+import org.academic.Services.StudentDAL;
 import org.academic.User.UserType;
 
 import java.util.Date;
 
 public class Session {
     private static Session session = null;
+    private String firstName;
+    public String getFirstName() {
+        return firstName;
+    }
+
     private String userName;
     private String password;
     private UserType userType;
     private Date loginTime;
     private Date logoutTime;
     private String sessionId;
+    private String FacultyID;
+    private String StudentEntryNumber;
+    private String currentSemester;
+
+    public String getCurrentSemester() {
+        this.currentSemester = Course_Offerings.get_current_semester();
+        return currentSemester;
+    }
+
+    public String getStudentEntryNumber() {
+        return StudentEntryNumber;
+    }
+
+    public String getFacultyID() {
+        return this.FacultyID;
+    }
+
+    public void setFacultyID(String facultyID) {
+        this.FacultyID = facultyID;
+    }
 
     public String getSessionId() {
         return sessionId;
@@ -20,7 +48,6 @@ public class Session {
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
     }
-
 
     /**
      * @return the loginTime
@@ -74,7 +101,21 @@ public class Session {
         this.userType = userType;
         this.loginTime = new Date();
         this.sessionId = sessionId;
-//        TODO: set time in database
+        this.currentSemester = Course_Offerings.get_current_semester();
+
+        if (userType == UserType.FACULTY) {
+            this.FacultyID = InstructorDAL.getFacultyId(userName).toUpperCase();
+            this.firstName = InstructorDAL.getName(FacultyID);
+        }
+        if (userType == UserType.STUDENT) {
+            // to check case
+            this.StudentEntryNumber = StudentDAL.getStudentEntryNumber(userName);
+        }
+        if (userType == UserType.ADMIN) {
+            // TODO: set admin id
+            this.FacultyID = InstructorDAL.getFacultyId(userName);
+        }
+        // TODO: set time in database
     }
 
     public void clearSession() {
@@ -87,6 +128,5 @@ public class Session {
     public boolean isSessionActive() {
         return this.userName != null && this.password != null && this.userType != null;
     }
-
 
 }
