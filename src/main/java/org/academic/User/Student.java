@@ -152,7 +152,7 @@ public class Student implements User {
         Course_Offerings_DTO[] courseOfferings;
         if (isNotAuthorized()) {
             courseOfferings = new Course_Offerings_DTO[1];
-            courseOfferings[0] = new Course_Offerings_DTO("Error", "You are not authorized to view the courses offered", "Error", new String[]{"Error"}, "Error");
+            courseOfferings[0] = new Course_Offerings_DTO("Error", "You are not authorized to view the courses offered", "Error", new String[]{"Error"}, "Error","Error");
             return courseOfferings;
         }
 

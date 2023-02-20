@@ -1,6 +1,7 @@
 package org.academic.Services;
 
 import org.academic.Database.Course_Offerings_DTO;
+import org.academic.Database.GiveGradeDTO;
 import org.academic.Database.CourseRegisterDTO;
 import org.academic.Database.Connector;
 import org.academic.Database.GradeDTO;
@@ -34,14 +35,14 @@ public class Course_Offerings {
                 String instructorName = InstructorDAL.getName(instructorID);
 
 //                Add the course offerings to the array list
-                courseOfferings.add(new Course_Offerings_DTO(courseCode, courseName, instructorName, prerequisites, creditStructure));
+                courseOfferings.add(new Course_Offerings_DTO(courseCode, courseName, instructorName, prerequisites, creditStructure,"NOT ALLOWED"));
             }
 //            Convert the array list to an array
             course_offeringDTOS = courseOfferings.toArray(new Course_Offerings_DTO[0]);
         } catch (SQLException e) {
 //            If there is an error, return an array with one element containing the error message
             course_offeringDTOS = new Course_Offerings_DTO[1];
-            course_offeringDTOS[0] = new Course_Offerings_DTO("Error", "Error", "Error", new String[]{"Error"}, "Error");
+            course_offeringDTOS[0] = new Course_Offerings_DTO("Error", "Error", "Error", new String[]{"Error"}, "Error","Error");
             OutputHandler.logError("Error while getting course offerings: " + e.getMessage());
         }
         return course_offeringDTOS;
@@ -62,10 +63,11 @@ public class Course_Offerings {
                 String creditStructure = Course_catalog.getCreditStructure(courseCode);
 
                 String status = rs.getString("status");
-                String grade = view_grade_course(student_entry_no, courseCode);
+                String semester = rs.getString("semester");
+                String grade = view_grade_course(student_entry_no, courseCode, semester);
+                
 //                TODO: Get the type of course from the ug curriculum
                 String type = "Program Course";
-                String semester = rs.getString("semester");
 
 //                Add the course offerings to the array list
                 courseRegisters.add(new CourseRegisterDTO(courseCode, courseName, status, grade, type, semester, creditStructure));
@@ -83,13 +85,14 @@ public class Course_Offerings {
     }
 
     //    view grade
-    public static String view_grade_course(String student_entry_no, String course_code) {
-        String grade = null;
-        String query = "SELECT grade FROM grade_entry WHERE student_entry_number = '" + student_entry_no + "' AND course_code = '" + course_code + "'";
+    public static String view_grade_course(String student_entry_no, String course_code, String semester) {
+        // TODO: succes in eventlogger
+        String grade = "none";
+        String query = "SELECT grade FROM grade_entry WHERE student_entry_number = '" + student_entry_no + "' AND course_code = '" + course_code + "' AND semester = '" + semester + "'";
         try {
             Connection conn = Connector.getConnection();
             ResultSet rs = conn.createStatement().executeQuery(query);
-            while (rs.next()) {
+            if (rs.next()) {
                 grade = rs.getString("grade");
             }
         } catch (SQLException e) {
@@ -136,4 +139,92 @@ public class Course_Offerings {
         }
         return "Error";
     }
+
+    // offer course
+    public static String offer_course(String course_code, String instructor_id, String semester , Float CGPA_cutoff) {
+        String query = "INSERT INTO course_offerings VALUES ('" + course_code + "', '" + semester + "', '" + instructor_id + "', '" + CGPA_cutoff + "')";
+        try {
+            Connection conn = Connector.getConnection();
+            conn.createStatement().executeUpdate(query);
+            return "Course offered successfully";
+        } catch (SQLException e) {
+            OutputHandler.logError("Error in offer course: " + e.getMessage());
+            OutputHandler.logError("Query: " + query);
+            return "Something went wrong (Make sure the course code is valid or the course is not already offered in the semester)";
+        }
+    }
+
+    // get courses offered in a semester by instructor
+    public static Course_Offerings_DTO[] get_courses_offered_by_instructor(String instructor_id, String semester) {
+        String query = "SELECT * FROM course_offerings WHERE instructor_id = '" + instructor_id + "' AND semester = '" + semester + "'";
+        try {
+            Connection conn = Connector.getConnection();
+            ResultSet rs = conn.createStatement().executeQuery(query);
+            ArrayList<Course_Offerings_DTO> courseOfferings = new ArrayList<>();
+            while (rs.next()) {
+                String courseCode = rs.getString("course_code");
+                String courseName = Course_catalog.getCourseName(courseCode);
+                String creditStructure = Course_catalog.getCreditStructure(courseCode);
+                String[] prerequisites = Course_catalog.getCoursePrerequisites(courseCode);
+
+                String instructorName = InstructorDAL.getName(instructor_id);
+                String CGPA_cutoff = rs.getString("cgpa_constraint");
+                
+                courseOfferings.add(new Course_Offerings_DTO(courseCode, courseName, instructorName, prerequisites, creditStructure, CGPA_cutoff));
+            }
+            return courseOfferings.toArray(new Course_Offerings_DTO[0]);
+        } catch (SQLException e) {
+            OutputHandler.logError("Error in get courses offered by instructor: " + e.getMessage());
+            OutputHandler.logError("Query: " + query);
+            Course_Offerings_DTO[] courseOfferingsDTOS = new Course_Offerings_DTO[1];
+            courseOfferingsDTOS[0] = new Course_Offerings_DTO("Error", e.getMessage(), "Error", new String[0], "Error", "Error");
+            return courseOfferingsDTOS;
+        }
+
+    }
+
+    // get students data for giving grade to a course
+    public static GiveGradeDTO[] get_students_data(String courseCode, String currentSemester) {
+        String query = "SELECT * FROM student_course_registration WHERE course_code = '" + courseCode + "' AND semester = '" + currentSemester + "'";
+        try {
+            Connection conn = Connector.getConnection();
+            ResultSet rs = conn.createStatement().executeQuery(query);
+            ArrayList<GiveGradeDTO> giveGradeDTOS = new ArrayList<>();
+            while (rs.next()) {
+                String studentEntryNo = rs.getString("student_entry_number");
+                String studentName = StudentDAL.getName(studentEntryNo);
+
+                // check if grade is already given
+                String grade = view_grade_course(studentEntryNo, courseCode, currentSemester);
+                // OutputHandler.logError("Grade: " + grade);
+                // if (!grade.equals("NA")) {
+                //     continue;
+                // }
+                
+                giveGradeDTOS.add(new GiveGradeDTO(studentEntryNo, studentName, courseCode, currentSemester, grade));
+            }
+            return giveGradeDTOS.toArray(new GiveGradeDTO[0]);
+        } catch (SQLException e) {
+            OutputHandler.logError("Error in get students data: " + e.getMessage());
+            OutputHandler.logError("Query: " + query);
+            GiveGradeDTO[] giveGradeDTOS = new GiveGradeDTO[1];
+            giveGradeDTOS[0] = new GiveGradeDTO("Error", e.getMessage(), "Error", "Error", "Error");
+            return giveGradeDTOS;
+        }
+    }
+
+    // give grade to a student for a course in a semester (grade_entry)
+    public static String give_grade(String studentID, String courseCode, String semester, String grade) {
+        String query = "INSERT INTO grade_entry VALUES ('" + studentID + "', '" + courseCode + "', '" + semester + "', '" + grade + "')";
+        try {
+            Connection conn = Connector.getConnection();
+            conn.createStatement().executeUpdate(query);
+            return "Grade given successfully";
+        } catch (SQLException e) {
+            OutputHandler.logError("Error in give grade: " + e.getMessage());
+            OutputHandler.logError("Query: " + query);
+            return "Error : Something went wrong (Make sure the student is registered for the course in the semester)";
+        }
+    }
+
 }

@@ -4,6 +4,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 Error.log
+*.csv
 
 ### IntelliJ IDEA ###
 .idea/
