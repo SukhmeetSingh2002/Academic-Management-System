@@ -7,12 +7,11 @@ import org.academic.Database.GiveGradeDTO;
 import org.academic.Services.Course_Offerings;
 import org.academic.Services.Course_catalog;
 import org.academic.Services.EventLogger;
-import org.academic.cli.OutputHandler;
 
 public class Faculty implements User {
     private String userName;
     private String password;
-    private String[] options = {"Add a course offering", "Give grades to students", "View course offering"};
+    private String[] options = {"Add a course offering", "Give grades to students", "View course offering" , "Edit Profile", "Logout"};
 
     private String FacultyID;
     private String sessionID;

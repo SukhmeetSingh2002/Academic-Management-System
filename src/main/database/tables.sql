@@ -1,4 +1,29 @@
 /* This file will contain the SQL statements to create the tables and insert the data into the tables. */
+
+-- office staff table
+CREATE TABLE office_staff
+(
+    staff_id SERIAL,
+    name     VARCHAR(50) NOT NULL,
+    email    VARCHAR(50) NOT NULL,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    FOREIGN KEY (username) REFERENCES user_authentication (user_name),
+    PRIMARY KEY (staff_id)
+);
+
+-- insert into office_staff values (1, 'Rajiv', 'Rajiv@iitrpr.ac.in', 'staff');
+
+-- create a table which stores current academic events SEMESTER_START,COURSE_FLOAT_START,COURSE_FLOAT_END,COURSE_REGISTRATION_START,COURSE_REGISTRATION_END,SEMESTER_END
+CREATE TABLE academic_calendar
+(
+    event_name VARCHAR(50) NOT NULL,
+    event_date DATE        NOT NULL,
+    semester   VARCHAR(50) NOT NULL,
+    is_current BOOLEAN     NOT NULL,
+    FOREIGN KEY (semester) REFERENCES semester (semester),
+    PRIMARY KEY (event_name, semester)
+);
+
 -- Create the table ug_curriculum which contains Program Core and Program Electives for particular batch
 CREATE TABLE batch
 (
@@ -31,7 +56,7 @@ CREATE TABLE student
     FOREIGN KEY (batch) REFERENCES batch (batchYear),
     PRIMARY KEY (entry_number),
     -- TODO change
-    FOREIGN KEY (username) REFERENCES user_authentication (username)
+    FOREIGN KEY (username) REFERENCES user_authentication (user_name)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
@@ -49,13 +74,13 @@ call insert_student_data('2019CS101', 'John', '2019csb101@iitrpr.ac.in', 2019);
 -- create the table
 CREATE TABLE instructor
 (
-    instructor_id INT         NOT NULL UNIQUE,
+    instructor_id SERIAL,
     name          VARCHAR(50) NOT NULL,
     username      VARCHAR(50) NOT NULL UNIQUE,
     email         VARCHAR(50) NOT NULL,
     department    VARCHAR(50) NOT NULL,
     PRIMARY KEY (instructor_id),
-    FOREIGN KEY (username) REFERENCES user_authentication (username)
+    FOREIGN KEY (username) REFERENCES user_authentication (user_name)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
@@ -143,6 +168,7 @@ CREATE TABLE prerequisites
 (
     course_code              VARCHAR(50) NOT NULL,
     prerequisite_course_code VARCHAR(50) NOT NULL,
+    min_grade                VARCHAR(50) NOT NULL,
     FOREIGN KEY (course_code) REFERENCES course_catalog (course_code),
     FOREIGN KEY (prerequisite_course_code) REFERENCES course_catalog (course_code),
     PRIMARY KEY (course_code, prerequisite_course_code)
@@ -335,7 +361,7 @@ CREATE TABLE event_log
 (
     user_name VARCHAR(50) NOT NULL,
     event_time TIMESTAMP NOT NULL,
-    event VARCHAR(50) NOT NULL,
+    event TEXT NOT NULL,
     login_id VARCHAR(50) NOT NULL,
     FOREIGN KEY (user_name) REFERENCES user_authentication (user_name),
     PRIMARY KEY (user_name, event_time)

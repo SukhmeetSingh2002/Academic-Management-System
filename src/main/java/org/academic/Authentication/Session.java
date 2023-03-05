@@ -2,6 +2,7 @@ package org.academic.Authentication;
 
 import org.academic.Services.Course_Offerings;
 import org.academic.Services.InstructorDAL;
+import org.academic.Services.OfficeStaffDAL;
 import org.academic.Services.StudentDAL;
 import org.academic.User.UserType;
 
@@ -13,6 +14,12 @@ public class Session {
     public String getFirstName() {
         return firstName;
     }
+    
+    private String email;
+
+    public String getEmail() {
+        return email;
+    }
 
     private String userName;
     private String password;
@@ -23,6 +30,17 @@ public class Session {
     private String FacultyID;
     private String StudentEntryNumber;
     private String currentSemester;
+    private String StaffID;
+    private String[] currentAcademicEvent;
+
+    public String[] getCurrentAcademicEvent() {
+        this.currentAcademicEvent = OfficeStaffDAL.getCurrentEvent();
+        return currentAcademicEvent;
+    }
+
+    public String getStaffID() {
+        return StaffID;
+    }
 
     public String getCurrentSemester() {
         this.currentSemester = Course_Offerings.get_current_semester();
@@ -106,14 +124,18 @@ public class Session {
         if (userType == UserType.FACULTY) {
             this.FacultyID = InstructorDAL.getFacultyId(userName).toUpperCase();
             this.firstName = InstructorDAL.getName(FacultyID);
+            this.email = InstructorDAL.getEmail(FacultyID);
         }
         if (userType == UserType.STUDENT) {
             // to check case
             this.StudentEntryNumber = StudentDAL.getStudentEntryNumber(userName);
+            this.firstName = StudentDAL.getName(StudentEntryNumber);
+            this.email = StudentDAL.getEmail(StudentEntryNumber);
         }
-        if (userType == UserType.ADMIN) {
-            // TODO: set admin id
-            this.FacultyID = InstructorDAL.getFacultyId(userName);
+        if (userType == UserType.OFFICESTAFF) {
+            this.StaffID = OfficeStaffDAL.getStaffID(userName);
+            this.firstName = OfficeStaffDAL.getFirstName(userName);
+            this.email = OfficeStaffDAL.getEmail(userName);
         }
         // TODO: set time in database
     }
