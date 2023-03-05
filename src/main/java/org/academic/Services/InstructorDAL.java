@@ -44,4 +44,20 @@ public class InstructorDAL {
         return facultyId;
     }
 
+    public static String getEmail(String facultyID) {
+        String email = null;
+        String query = "SELECT * FROM instructor WHERE instructor_id = '" + facultyID + "'";
+        try {
+            Connection conn = Connector.getConnection();
+            ResultSet rs = conn.createStatement().executeQuery(query);
+            if (rs.next()) {
+                email = rs.getString("email");
+            }
+        } catch (SQLException e) {
+            email = "Error";
+            OutputHandler.logError("Get email error:"+e.getMessage());
+        }
+        return email;
+    }
+
 }

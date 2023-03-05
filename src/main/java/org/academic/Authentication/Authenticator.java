@@ -15,6 +15,10 @@ public class Authenticator {
             return false;
         } else {
             Session.getInstance().setSession(userName, password, userType, String.valueOf(System.currentTimeMillis()));
+            if (Session.getInstance().getEmail() == null) {
+                OutputHandler.logError("Error while setting session");
+                return false;
+            }
             OutputHandler.logError("Login successful " + userName + " " + userType + " " + Session.getInstance().getSessionId());
             AuthDetails.loginLog(userName, java.time.LocalDateTime.now().toString(), Session.getInstance().getSessionId());
             return true;
