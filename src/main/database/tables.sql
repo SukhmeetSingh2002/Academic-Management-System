@@ -1,4 +1,29 @@
 /* This file will contain the SQL statements to create the tables and insert the data into the tables. */
+
+-- office staff table
+CREATE TABLE office_staff
+(
+    staff_id SERIAL,
+    name     VARCHAR(50) NOT NULL,
+    email    VARCHAR(50) NOT NULL,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    FOREIGN KEY (username) REFERENCES user_authentication (user_name),
+    PRIMARY KEY (staff_id)
+);
+
+-- insert into office_staff values (1, 'Rajiv', 'Rajiv@iitrpr.ac.in', 'staff');
+
+-- create a table which stores current academic events SEMESTER_START,COURSE_FLOAT_START,COURSE_FLOAT_END,COURSE_REGISTRATION_START,COURSE_REGISTRATION_END,SEMESTER_END
+CREATE TABLE academic_calendar
+(
+    event_name VARCHAR(50) NOT NULL,
+    event_date DATE        NOT NULL,
+    semester   VARCHAR(50) NOT NULL,
+    is_current BOOLEAN     NOT NULL,
+    FOREIGN KEY (semester) REFERENCES semester (semester),
+    PRIMARY KEY (event_name, semester)
+);
+
 -- Create the table ug_curriculum which contains Program Core and Program Electives for particular batch
 CREATE TABLE batch
 (
@@ -16,8 +41,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- call insert_batch_data(2019, 120, 3);
--- call insert_batch_data(2020, 120, 3);
+call insert_batch_data(2019, 120, 3);
+call insert_batch_data(2020, 120, 3);
 
 
 -- Create the table
@@ -25,32 +50,37 @@ CREATE TABLE student
 (
     entry_number VARCHAR(50) NOT NULL UNIQUE,
     name         VARCHAR(50) NOT NULL,
+    username     VARCHAR(50) NOT NULL UNIQUE,
     email        VARCHAR(50) NOT NULL,
     batch        INT         NOT NULL,
     FOREIGN KEY (batch) REFERENCES batch (batchYear),
-    PRIMARY KEY (entry_number)
+    PRIMARY KEY (entry_number),
+    -- TODO change
+    FOREIGN KEY (username) REFERENCES user_authentication (user_name)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
 CREATE OR REPLACE PROCEDURE insert_student_data(entry_number VARCHAR(50), name VARCHAR(50), email VARCHAR(50),
-                                                batch INT) AS
+                                                batch INT, username VARCHAR(50)) AS
 $$
 BEGIN
-    INSERT INTO student VALUES (entry_number, name, email, batch);
+    INSERT INTO student VALUES (entry_number, name, username, email, batch);
 END;
-$$ LANGUAGE plpgsql;
 
--- call insert_student_data('2019CS101', 'John', '2019csb101@iitrpr.ac.in', 2019);
+
+call insert_student_data('2019CS101', 'John', '2019csb101@iitrpr.ac.in', 2019);
 
 
 -- create the table
 CREATE TABLE instructor
 (
-    instructor_id INT         NOT NULL UNIQUE,
+    instructor_id SERIAL,
     name          VARCHAR(50) NOT NULL,
+    username      VARCHAR(50) NOT NULL UNIQUE,
     email         VARCHAR(50) NOT NULL,
     department    VARCHAR(50) NOT NULL,
-    PRIMARY KEY (instructor_id)
+    PRIMARY KEY (instructor_id),
+    FOREIGN KEY (username) REFERENCES user_authentication (user_name)
 );
 
 -- Insert the data procedure to insert the data into the table pgSQL
@@ -106,7 +136,7 @@ $$ LANGUAGE plpgsql;
 -- $$ LANGUAGE plsql;
 
 
--- call insert_student_data(1, 'John', 'john@wqer.com');
+call insert_student_data(1, 'John', 'john@wqer.com');
 
 -- Design a database which comprises of the following concepts:
 -- 1. Course Catalog: This contains all the list of courses which can be offered in IIT Ropar. For each
@@ -138,6 +168,7 @@ CREATE TABLE prerequisites
 (
     course_code              VARCHAR(50) NOT NULL,
     prerequisite_course_code VARCHAR(50) NOT NULL,
+    min_grade                VARCHAR(50) NOT NULL,
     FOREIGN KEY (course_code) REFERENCES course_catalog (course_code),
     FOREIGN KEY (prerequisite_course_code) REFERENCES course_catalog (course_code),
     PRIMARY KEY (course_code, prerequisite_course_code)
@@ -259,21 +290,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- call insert_user_authentication_data('John', '123', 'Student');
+call insert_user_authentication_data('John', '123', 'Student');
 
 
 -- create a stored procedure to deregister a course
-CREATE OR REPLACE PROCEDURE deregister_course(_student_entry_number INT, _course_code VARCHAR(50),
-                                              _semester VARCHAR(50)) AS
-$$
-BEGIN
-    DELETE
-    FROM student_course_registration
-    WHERE student_entry_number = _student_entry_number
-      AND course_code = _course_code
-      AND semester = _semester;
-END;
-$$ LANGUAGE plpgsql;
+-- CREATE OR REPLACE PROCEDURE deregister_course(_student_entry_number INT, _course_code VARCHAR(50),
+--                                               _semester VARCHAR(50)) AS
+-- $$
+-- BEGIN
+--     DELETE
+--     FROM student_course_registration
+--     WHERE student_entry_number = _student_entry_number
+--       AND course_code = _course_code
+--       AND semester = _semester;
+-- END;
+-- $$ LANGUAGE plpgsql;
 
 -- call deregister_course(1, 'CS 101', 'Fall 2019');
 
@@ -307,10 +338,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- call insert_ug_curriculum_data(2019, 'CS 101', 'PC');
--- call insert_ug_curriculum_data(2019, 'CS 102', 'PE');
--- call insert_ug_curriculum_data(2019, 'CS 103', 'PE');
--- call insert_ug_curriculum_data(2019, 'CS 104', 'PE');
+call insert_ug_curriculum_data(2019, 'CS 101', 'PC');
+call insert_ug_curriculum_data(2019, 'CS 102', 'PE');
+call insert_ug_curriculum_data(2019, 'CS 103', 'PE');
+call insert_ug_curriculum_data(2019, 'CS 104', 'PE');
 
 
 -- make login_log table
@@ -330,7 +361,7 @@ CREATE TABLE event_log
 (
     user_name VARCHAR(50) NOT NULL,
     event_time TIMESTAMP NOT NULL,
-    event VARCHAR(50) NOT NULL,
+    event TEXT NOT NULL,
     login_id VARCHAR(50) NOT NULL,
     FOREIGN KEY (user_name) REFERENCES user_authentication (user_name),
     PRIMARY KEY (user_name, event_time)

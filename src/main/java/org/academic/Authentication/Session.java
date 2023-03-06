@@ -1,17 +1,63 @@
 package org.academic.Authentication;
 
+import org.academic.Services.Course_Offerings;
+import org.academic.Services.InstructorDAL;
+import org.academic.Services.OfficeStaffDAL;
+import org.academic.Services.StudentDAL;
 import org.academic.User.UserType;
 
 import java.util.Date;
 
 public class Session {
     private static Session session = null;
+    private String firstName;
+    public String getFirstName() {
+        return firstName;
+    }
+    
+    private String email;
+
+    public String getEmail() {
+        return email;
+    }
+
     private String userName;
     private String password;
     private UserType userType;
     private Date loginTime;
     private Date logoutTime;
     private String sessionId;
+    private String FacultyID;
+    private String StudentEntryNumber;
+    private String currentSemester;
+    private String StaffID;
+    private String[] currentAcademicEvent;
+
+    public String[] getCurrentAcademicEvent() {
+        this.currentAcademicEvent = OfficeStaffDAL.getCurrentEvent();
+        return currentAcademicEvent;
+    }
+
+    public String getStaffID() {
+        return StaffID;
+    }
+
+    public String getCurrentSemester() {
+        this.currentSemester = Course_Offerings.get_current_semester();
+        return currentSemester;
+    }
+
+    public String getStudentEntryNumber() {
+        return StudentEntryNumber;
+    }
+
+    public String getFacultyID() {
+        return this.FacultyID;
+    }
+
+    public void setFacultyID(String facultyID) {
+        this.FacultyID = facultyID;
+    }
 
     public String getSessionId() {
         return sessionId;
@@ -20,7 +66,6 @@ public class Session {
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
     }
-
 
     /**
      * @return the loginTime
@@ -74,7 +119,25 @@ public class Session {
         this.userType = userType;
         this.loginTime = new Date();
         this.sessionId = sessionId;
-//        TODO: set time in database
+        this.currentSemester = Course_Offerings.get_current_semester();
+
+        if (userType == UserType.FACULTY) {
+            this.FacultyID = InstructorDAL.getFacultyId(userName).toUpperCase();
+            this.firstName = InstructorDAL.getName(FacultyID);
+            this.email = InstructorDAL.getEmail(FacultyID);
+        }
+        if (userType == UserType.STUDENT) {
+            // to check case
+            this.StudentEntryNumber = StudentDAL.getStudentEntryNumber(userName);
+            this.firstName = StudentDAL.getName(StudentEntryNumber);
+            this.email = StudentDAL.getEmail(StudentEntryNumber);
+        }
+        if (userType == UserType.OFFICESTAFF) {
+            this.StaffID = OfficeStaffDAL.getStaffID(userName);
+            this.firstName = OfficeStaffDAL.getFirstName(userName);
+            this.email = OfficeStaffDAL.getEmail(userName);
+        }
+        // TODO: set time in database
     }
 
     public void clearSession() {
@@ -87,6 +150,5 @@ public class Session {
     public boolean isSessionActive() {
         return this.userName != null && this.password != null && this.userType != null;
     }
-
 
 }
