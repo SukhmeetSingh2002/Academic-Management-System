@@ -54,7 +54,7 @@ public class OfficeStaff implements User {
     private boolean isNotAuthorized() {
         Session session = Session.getInstance();
 
-        if (!session.isSessionActive() || !session.getUserName().equals(this.userName) || !session.getUserType().equals(UserType.OFFICESTAFF)) {
+        if (!session.isSessionActive() || !session.getUserName().equals(this.userName) || !session.getUserType().equals(UserType.OFFICE_STAFF)) {
             return true;
         }
         this.sessionID = session.getSessionId();
@@ -85,22 +85,6 @@ public class OfficeStaff implements User {
     @Override
     public String getPassword() {
         return password;
-    }
-
-    /**
-     * @param userName the userName to set
-     */
-    @Override
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    /**
-     * @param password the password to set
-     */
-    @Override
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     /**
@@ -270,7 +254,7 @@ public class OfficeStaff implements User {
         }
 
         // add the staff in auth table
-        boolean isStaffAddedInAuth = OfficeStaffDAL.addNewUser(staffUserName, staffPassword, UserType.OFFICESTAFF);
+        boolean isStaffAddedInAuth = OfficeStaffDAL.addNewUser(staffUserName, staffPassword, UserType.OFFICE_STAFF);
         if (!isStaffAddedInAuth) {
             return "Error in adding the staff in auth table";
         }

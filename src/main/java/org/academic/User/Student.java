@@ -10,6 +10,8 @@ import org.academic.Services.Course_catalog;
 import org.academic.Services.StudentDAL;
 import org.academic.cli.OutputHandler;
 
+import java.util.Arrays;
+
 public class Student implements User {
     private String userName;
     private String password;
@@ -47,23 +49,7 @@ public class Student implements User {
         return password;
     }
 
-    /**
-     * @param userName the userName to set
-     */
-    @Override
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    /**
-     * @param password the password to set
-     */
-    @Override
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-//    return a list of options available to the user
+    //    return a list of options available to the user
 
     /**
      * @return the options
@@ -168,7 +154,7 @@ public class Student implements User {
         }
 
         // total credits registered in previous 2 semesters
-        double totalCredits = 0;
+        double totalCredits;
         double creditsInPreviousSemester = 0;
         double creditsInPreviousPreviousSemester = 0;
         String previousSemester = this.getPreviousSemester(Session.getInstance().getCurrentSemester());
@@ -187,7 +173,7 @@ public class Student implements User {
         }
         // if one of them is zero, then the student is in the second semester and if both are zero, then the student is in the first semester
         totalCredits = creditsInPreviousSemester + creditsInPreviousPreviousSemester;
-        double maxCreditsAllowed = 0;
+        double maxCreditsAllowed;
         if (creditsInPreviousSemester == 0 && creditsInPreviousPreviousSemester == 0) {
             maxCreditsAllowed = 24;
         } else if (creditsInPreviousSemester == 0 || creditsInPreviousPreviousSemester == 0) {
@@ -237,10 +223,10 @@ public class Student implements User {
         String[] semester = currentSemester.split(" ");
         int year = Integer.parseInt(semester[1]);
         String semesterType = semester[0];
-        if (semesterType.equals("Odd")) {
-            return "Even " + year;
+        if (semesterType.equals("ODD")) {
+            return "EVEN " + year;
         } else {
-            return "Odd " + (year-1);
+            return "ODD " + (year-1);
         }
     }
 

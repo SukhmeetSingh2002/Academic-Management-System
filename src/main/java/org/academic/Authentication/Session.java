@@ -132,7 +132,7 @@ public class Session {
             this.firstName = StudentDAL.getName(StudentEntryNumber);
             this.email = StudentDAL.getEmail(StudentEntryNumber);
         }
-        if (userType == UserType.OFFICESTAFF) {
+        if (userType == UserType.OFFICE_STAFF) {
             this.StaffID = OfficeStaffDAL.getStaffID(userName);
             this.firstName = OfficeStaffDAL.getFirstName(userName);
             this.email = OfficeStaffDAL.getEmail(userName);

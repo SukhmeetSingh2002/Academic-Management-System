@@ -233,7 +233,7 @@ public class Main {
                 handleStudent();
             } else if (Session.getInstance().getUserType() == UserType.FACULTY) {
                 handleFaculty();
-            } else if (Session.getInstance().getUserType() == UserType.OFFICESTAFF) {
+            } else if (Session.getInstance().getUserType() == UserType.OFFICE_STAFF) {
                 // try {
                     handleOfficeStaff();
                 // } catch (Exception e) {

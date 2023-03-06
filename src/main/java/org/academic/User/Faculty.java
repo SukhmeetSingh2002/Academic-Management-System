@@ -57,22 +57,6 @@ public class Faculty implements User {
     }
 
     /**
-     * @param userName the userName to set
-     */
-    @Override
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    /**
-     * @param password the password to set
-     */
-    @Override
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    /**
      * @return the options available to the user
      */
     @Override
