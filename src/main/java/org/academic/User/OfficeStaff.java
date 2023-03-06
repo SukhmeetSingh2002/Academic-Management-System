@@ -347,7 +347,7 @@ public class OfficeStaff implements User {
 
                 // extract the credits from the string and push it to the array
                 String[] creditParts = credits.split("-");
-                OutputHandler.print(credits);
+                // OutputHandler.print(credits);
                 double courseCredits = Double.parseDouble(creditParts[3]);
                 allCourseCredits[i] = courseCredits;
                 totalCredits += courseCredits;

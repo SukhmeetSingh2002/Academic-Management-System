@@ -176,4 +176,30 @@ public class StudentDAL {
         }
         return email;
     }
+
+    public static boolean registerForCourse(String entryNumber, String courseCode, String semester) {
+        String query = "INSERT INTO student_course_registration VALUES ('%s', '%s', '%s' , 'ONGOING')".formatted(entryNumber, courseCode, semester);
+        try {
+            Connection conn = Connector.getConnection();
+            conn.createStatement().executeUpdate(query);
+            return true;
+        } catch (SQLException e) {
+            OutputHandler.logError("Error while registering for course: " + e.getMessage());
+            OutputHandler.logError(query);
+            return false;
+        }
+    }
+
+    public static boolean dropCourse(String entryNumber, String courseCode, String currentSemester) {
+        String query = "DELETE FROM student_course_registration WHERE entry_number = '%s' AND course_code = '%s' AND semester = '%s'".formatted(entryNumber, courseCode, currentSemester);
+        try {
+            Connection conn = Connector.getConnection();
+            conn.createStatement().executeUpdate(query);
+            return true;
+        } catch (SQLException e) {
+            OutputHandler.logError("Error while dropping course: " + e.getMessage());
+            OutputHandler.logError(query);
+            return false;
+        }
+    }
 }
