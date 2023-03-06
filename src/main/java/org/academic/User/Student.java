@@ -124,12 +124,125 @@ public class Student implements User {
         if (!session.isSessionActive() || !session.getUserName().equals(this.userName) || !session.getUserType().equals(UserType.STUDENT)) {
             return "You are not authorized to enroll in the course";
         }
-//
-        return "You have successfully enrolled in the course";
+        // TODO: check event
 
+        // check if the course is offered in the current semester
+        Course_Offerings_DTO[] courseOfferings = this.viewCoursesOffered();
+        boolean isCourseOffered = false;
+        for (Course_Offerings_DTO courseOffering : courseOfferings) {
+            if (courseOffering.course_code().equals(courseCode)) {
+                isCourseOffered = true;
+                break;
+            }
+        }
+        if (!isCourseOffered) {
+            return "The course is not offered in the current semester";
+        }
+
+        // check if the student has already registered for the course
+        double creditsRegistered = 0;
+        CourseRegisterDTO[] courseRegister = this.viewCoursesRegistered();
+        boolean isCourseRegistered = false;
+        for (CourseRegisterDTO course : courseRegister) {
+            creditsRegistered += Double.parseDouble(course.credit_structure().split("-")[3]);
+            if (course.course_code().equals(courseCode)) {
+                isCourseRegistered = true;
+                break;
+            }
+        }
+        if (isCourseRegistered) {
+            return "You have already registered for the course";
+        }
+
+        // check if the student has already passed the course
+        GradeDTO[] grades = this.viewGrades();
+        boolean isCoursePassed = false;
+        for (GradeDTO grade : grades) {
+            if (grade.course_code().equals(courseCode) && !grade.grade().equals("F")) {
+                isCoursePassed = true;
+                break;
+            }
+        }
+        if (isCoursePassed) {
+            return "You have already passed the course";
+        }
+
+        // total credits registered in previous 2 semesters
+        double totalCredits = 0;
+        double creditsInPreviousSemester = 0;
+        double creditsInPreviousPreviousSemester = 0;
+        String previousSemester = this.getPreviousSemester(Session.getInstance().getCurrentSemester());
+        String previousPreviousSemester = this.getPreviousSemester(previousSemester);
+        for (GradeDTO grade : grades) {
+            if (grade.semester().equals(previousSemester)) {
+                String creditStructure = Course_catalog.getCreditStructure(grade.course_code());
+                String[] creditParts = creditStructure.split("-");
+                creditsInPreviousSemester += Double.parseDouble(creditParts[3]);
+            }
+            if (grade.semester().equals(previousPreviousSemester)) {
+                String creditStructure = Course_catalog.getCreditStructure(grade.course_code());
+                String[] creditParts = creditStructure.split("-");
+                creditsInPreviousPreviousSemester += Double.parseDouble(creditParts[3]);
+            }
+        }
+        // if one of them is zero, then the student is in the second semester and if both are zero, then the student is in the first semester
+        totalCredits = creditsInPreviousSemester + creditsInPreviousPreviousSemester;
+        double maxCreditsAllowed = 0;
+        if (creditsInPreviousSemester == 0 && creditsInPreviousPreviousSemester == 0) {
+            maxCreditsAllowed = 24;
+        } else if (creditsInPreviousSemester == 0 || creditsInPreviousPreviousSemester == 0) {
+            maxCreditsAllowed = 1.25 * totalCredits;
+        } else {
+            maxCreditsAllowed = 1.25 * totalCredits/2;
+        }
+
+        // check if the allowed credits are exceeded by registering for the course
+        double currentCourseCredit = Double.parseDouble(Course_catalog.getCreditStructure(courseCode).split("-")[3]);
+        if (creditsRegistered + currentCourseCredit > maxCreditsAllowed) {
+            OutputHandler.logError("You are not allowed to register for the course as it will exceed the allowed credits");
+            OutputHandler.logError("Credits registered: " + creditsRegistered);
+            OutputHandler.logError("Current course credit: " + currentCourseCredit);
+            OutputHandler.logError("Max credits allowed: " + maxCreditsAllowed);
+            return "You are not allowed to register for the course as it will exceed the allowed credits";
+        }
+
+        // TODO: check grade of prequisite courses
+        // check if the student has passed the prerequisites
+        String[] prerequisites = Course_catalog.getCoursePrerequisites(courseCode);
+        for (String prerequisite : prerequisites) {
+            boolean isPrerequisitePassed = false;
+            for (GradeDTO grade : grades) {
+                if (grade.course_code().equals(prerequisite) && !grade.grade().equals("F")) {
+                    isPrerequisitePassed = true;
+                    break;
+                }
+            }
+            if (!isPrerequisitePassed) {
+                return "You have not passed the prerequisites for the course";
+            }
+        }
+
+        // register for the course
+        if (StudentDAL.registerForCourse(this.entryNumber, courseCode, Session.getInstance().getCurrentSemester())) {
+            EventLogger.logEvent(this.userName, "enrollInCourse", java.time.LocalDateTime.now().toString(), this.sessionID);
+            return "You have successfully enrolled in the course";
+        }
+        
+        OutputHandler.logError("Not able to register for the course");
+        return "Not able to register for the course";
     }
 
-    //    view course catalog
+
+    private String getPreviousSemester(String currentSemester) {
+        String[] semester = currentSemester.split(" ");
+        int year = Integer.parseInt(semester[1]);
+        String semesterType = semester[0];
+        if (semesterType.equals("Odd")) {
+            return "Even " + year;
+        } else {
+            return "Odd " + (year-1);
+        }
+    }
 
     public String[] viewPrerequisites(String courseCode) {
         if (isNotAuthorized()) {
@@ -142,8 +255,32 @@ public class Student implements User {
 
     //    drop a course
     public String dropCourse(String courseCode) {
-//        TODO : Drop a course
-        return "You have successfully dropped the course";
+//        check session
+        if (isNotAuthorized()) {
+            return "You are not authorized to drop the course";
+        }
+
+//        check if the course is registered
+        CourseRegisterDTO[] courseRegister = this.viewCoursesRegistered();
+        boolean isCourseRegistered = false;
+        for (CourseRegisterDTO course : courseRegister) {
+            if (course.course_code().equals(courseCode)) {
+                isCourseRegistered = true;
+                break;
+            }
+        }
+        if (!isCourseRegistered) {
+            return "You have not registered for the course";
+        }
+
+//        drop the course
+        if (StudentDAL.dropCourse(this.entryNumber, courseCode , Session.getInstance().getCurrentSemester())) {
+            EventLogger.logEvent(this.userName, "dropCourse", java.time.LocalDateTime.now().toString(), this.sessionID);
+            return "You have successfully dropped the course";
+        }
+
+        OutputHandler.logError("Not able to drop the course");
+        return "Not able to drop the course";
     }
 
     //    view courses offered
