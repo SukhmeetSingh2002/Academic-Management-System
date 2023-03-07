@@ -172,19 +172,15 @@ class OfficeStaffTest {
     @Test
     void updateSemesterCloseCurrentSemesterFails() {
         MockedStatic<OfficeStaffDAL> officeStaffDALMockedStatic = Mockito.mockStatic(OfficeStaffDAL.class);
-        MockedStatic<Course_Offerings> courseOfferingsMockedStatic = Mockito.mockStatic(Course_Offerings.class);
         String currentSemester = "ODD 2020";
 
         officeStaffDALMockedStatic.when(OfficeStaffDAL::closeCurrentSemester).thenReturn(false);
-        courseOfferingsMockedStatic.when(Course_Offerings::get_current_semester).thenReturn(currentSemester);
 
         assertFalse(officeStaff.updateSemester(currentSemester));
 
         officeStaffDALMockedStatic.verify(OfficeStaffDAL::closeCurrentSemester);
         officeStaffDALMockedStatic.close();
 
-        courseOfferingsMockedStatic.verify(Course_Offerings::get_current_semester);
-        courseOfferingsMockedStatic.close();
 
     }
 
