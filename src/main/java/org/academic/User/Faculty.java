@@ -7,13 +7,16 @@ import org.academic.Database.GiveGradeDTO;
 import org.academic.Services.Course_Offerings;
 import org.academic.Services.Course_catalog;
 import org.academic.Services.EventLogger;
+import org.academic.cli.OutputHandler;
+
+import java.util.Arrays;
 
 public class Faculty implements User {
-    private String userName;
-    private String password;
-    private String[] options = {"Add a course offering", "Give grades to students", "View course offering" , "Edit Profile", "Logout"};
+    private final String userName;
+    private final String password;
+    private final String[] options = {"Add a course offering", "Give grades to students", "View course offering" , "Edit Profile", "Logout"};
 
-    private String FacultyID;
+    private final String FacultyID;
     private String sessionID;
 
     public Faculty(String userName, String password, String FacultyID) {
