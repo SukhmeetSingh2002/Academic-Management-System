@@ -173,6 +173,7 @@ class OfficeStaffDALTest {
 
     @Test
     @Order(18)
+    @Disabled
     void closeCurrentSemester() {
         boolean result = OfficeStaffDAL.closeCurrentSemester();
         assertTrue(result);

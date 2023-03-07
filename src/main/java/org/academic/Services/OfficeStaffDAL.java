@@ -106,6 +106,8 @@ public class OfficeStaffDAL {
         try {
             Connection conn = Connector.getConnection();
             int rowsAffected = conn.createStatement().executeUpdate(query);
+            OutputHandler.logError("Rows affected: " + rowsAffected);
+            OutputHandler.logError(query);
             return rowsAffected == 1;
         } catch (Exception e) {
             OutputHandler.logError("Error while closing current semester: " + e.getMessage());
