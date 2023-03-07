@@ -87,14 +87,17 @@ public class OfficeStaffDAL {
         return false;
     }
 
-    public static void updateSemester(String currentSemester) {
+    public static boolean updateSemester(String currentSemester) {
         String query = "INSERT INTO semester VALUES ('%s', '%s', true)".formatted(currentSemester, currentSemester.split(" ")[1]);
         try {
             Connection conn = Connector.getConnection();
             conn.createStatement().executeUpdate(query);
+            return true;
         } catch (Exception e) {
             OutputHandler.logError("Error while updating semester: " + e.getMessage());
+            OutputHandler.logError(query);
         }
+        return false;
 
     }
 

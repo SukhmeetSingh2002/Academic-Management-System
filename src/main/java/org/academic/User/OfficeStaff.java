@@ -1,6 +1,7 @@
 package org.academic.User;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.academic.CourseType;
 import org.academic.Events;
@@ -23,26 +24,18 @@ public class OfficeStaff implements User {
     /**
      *
      */
-    private static final String regexEntryNumber = "^[0-9]{4}[a-z]{3}[0-9]{4}$";
+    private static final String regexEntryNumber = "(?i)^[0-9]{4}[a-z]{3}[0-9]{4}$";
     private static final String regexBatch = "^[0-9]{4}$";
     private static final String regexName = "^[a-zA-Z ]+$";
     private static final String regexEmail = "^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$";
     private static final String regexPassword = "^.{3,}$";
 
-    private String userName;
-    private String password;
-    private String[] options = {"Manage Academic Events", "Register a new user", "Generate Transcript", "Add new Course to Course Catalog", "Run a Graduation Check", "Edit UG curriculum", "Edit Profile", "Logout"};
-    
-    private String StaffID;
+    private final String userName;
+    private final String password;
+    private final String[] options = {"Manage Academic Events", "Register a new user", "Generate Transcript", "Add new Course to Course Catalog", "Run a Graduation Check", "Edit UG curriculum", "Edit Profile", "Logout"};
+
+    private final String StaffID;
     private String sessionID;
-    
-    public String getSessionID() {
-        return sessionID;
-    }
-    
-    // public String[] getOptions(String[] options) {
-    //     return options;
-    // }
 
     public OfficeStaff(String userName, String password, String StaffID) {
         this.userName = userName;
@@ -60,16 +53,7 @@ public class OfficeStaff implements User {
         this.sessionID = session.getSessionId();
         return false;
     }
-    
-    public String getStaffID() {
-        return StaffID;
-    }
 
-    public void setStaffID(String staffID) {
-        StaffID = staffID;
-    }
-
-    
 
     /**
      * @return the userName
@@ -145,11 +129,10 @@ public class OfficeStaff implements User {
 
         EventLogger.logEvent(this.userName, "Closed academic event " + nextEvent.toString(), java.time.LocalDateTime.now().toString(), this.sessionID);
 
-        // semseter and start date of the next event
+        // semester and start date of the next event
         String semester = Session.getInstance().getCurrentSemester();
         String startDate = java.time.LocalDate.now().toString();
-        OutputHandler.print("startDate: " + startDate);
-    
+
 
         // open the next event
         boolean isNextEventOpened = OfficeStaffDAL.openNextEvent(nextEvent.toString(), semester, startDate);
@@ -157,31 +140,30 @@ public class OfficeStaff implements User {
             return "Error in opening the next event";
         }
 
-        EventLogger.logEvent(this.userName, "Updated academic event to " + nextEvent.toString(), java.time.LocalDateTime.now().toString(), this.sessionID);
+        EventLogger.logEvent(this.userName, "Updated academic event to " + nextEvent, java.time.LocalDateTime.now().toString(), this.sessionID);
 
         return "Event updated successfully";
 
     }
 
-    public void updateSemester(String currentSemester) {
+    public boolean updateSemester(String currentSemester) {
         if (isNotAuthorized()) {
-            return;
+            return false;
         }
 
         // close the current semester
         boolean isSemesterClosed = OfficeStaffDAL.closeCurrentSemester();
         if (!isSemesterClosed) {
-            OutputHandler.logError("Error in closing the current semester" );
-            OutputHandler.logError(Session.getInstance().getCurrentSemester());
-            return;
+            return false;
         }
         
         EventLogger.logEvent(this.userName, "Closed semester " + currentSemester, java.time.LocalDateTime.now().toString(), this.sessionID);
 
-        OfficeStaffDAL.updateSemester(currentSemester);
+        boolean isUpdated = OfficeStaffDAL.updateSemester(currentSemester);
 
         EventLogger.logEvent(this.userName, "Updated semester to " + currentSemester, java.time.LocalDateTime.now().toString(), this.sessionID);
-        
+
+        return isUpdated;
     }
 
     public String addStudent(String studentEntryNumber, String studentName, String studentEmail, String studentPassword, int studentBatch) {
@@ -299,8 +281,8 @@ public class OfficeStaff implements User {
 
         // get the list of students entry numbers
         ArrayList<String> studentsEntryNumbers = StudentDAL.getStudentsEntryNumbers(batch);
-        if (studentsEntryNumbers == null) {
-            return "Error in getting the list of students";
+        if (studentsEntryNumbers.size() == 0) {
+            return "Error in getting the students entry numbers";
         }
 
         // get student details and grades for each student
@@ -313,7 +295,7 @@ public class OfficeStaff implements User {
 
             // get student grades
             GradeDTO[] studentGrades = Course_Offerings.view_all_grade(studentEntryNumber);
-            if (studentGrades == null) {
+            if (studentGrades.length == 0) {
                 return "Error in getting the student grades";
             }
 
@@ -331,7 +313,6 @@ public class OfficeStaff implements User {
 
                 // extract the credits from the string and push it to the array
                 String[] creditParts = credits.split("-");
-                // OutputHandler.print(credits);
                 double courseCredits = Double.parseDouble(creditParts[3]);
                 allCourseCredits[i] = courseCredits;
                 totalCredits += courseCredits;
@@ -359,8 +340,7 @@ public class OfficeStaff implements User {
 
     private boolean isEntryNumberValid(String entryNumber) {
         // validate the student entry number using regex
-        String regex = regexEntryNumber;
-        return entryNumber.matches(regex);
+        return entryNumber.matches(regexEntryNumber);
 
     }
 
@@ -383,7 +363,7 @@ public class OfficeStaff implements User {
 
         // get the student grades
         GradeDTO[] studentGrades = Course_Offerings.view_all_grade(studentEntryNumber);
-        if (studentGrades == null) {
+        if (studentGrades.length == 0) {
             return "Error in getting the student grades";
         }
 
@@ -392,11 +372,15 @@ public class OfficeStaff implements User {
 
         // check if the student has completed all the core courses
         boolean hasCompletedAllCoreCourses = true;
-        for (UgCurriculumDTO course : coursesInUgCurriculum) {
-            if (course.type().equals("Core") && !hasCompletedCourse(course.courseCode(), studentGrades)) {
-                hasCompletedAllCoreCourses = false;
-                break;
+        if (coursesInUgCurriculum != null) {
+            for (UgCurriculumDTO course : coursesInUgCurriculum) {
+                if (course.type().equals("Core") && !hasCompletedCourse(course.courseCode(), studentGrades)) {
+                    hasCompletedAllCoreCourses = false;
+                    break;
+                }
             }
+        } else {
+            return "Error in getting the courses in the curriculum";
         }
 
         // check if the student has completed the required number of credits
@@ -414,15 +398,13 @@ public class OfficeStaff implements User {
         boolean isGraduationEligible = hasCompletedAllCoreCourses && hasCompletedMinCredits && hasCompletedMinElectives;
 
         // print grades and ug curriculum
-        OutputHandler.print("Student grades");
-        for (GradeDTO grade : studentGrades) {
-            OutputHandler.print(grade.course_code() + " " + grade.grade());
-        }
+//        for (GradeDTO grade : studentGrades) {
+//            OutputHandler.print(grade.course_code() + " " + grade.grade());
+//        }
 
-        OutputHandler.print("UG Curriculum");
-        for (UgCurriculumDTO course : coursesInUgCurriculum) {
-            OutputHandler.print(course.courseCode() + " " + course.type());
-        }
+//        for (UgCurriculumDTO course : coursesInUgCurriculum) {
+//            OutputHandler.print(course.courseCode() + " " + course.type());
+//        }
 
         
 
@@ -497,16 +479,20 @@ public class OfficeStaff implements User {
         }
 
         // validate the batch using regex
-        if (!this.isBatchValid(batch)) {
+        if (this.isBatchNotValid(batch)) {
             return "Invalid batch";
         }
 
         // check if the course is already in the curriculum
         UgCurriculumDTO[] coursesInUgCurriculum = CurriculumDAL.getCoursesInUGCurriculum(batch);
-        for (UgCurriculumDTO course : coursesInUgCurriculum) {
-            if (course.courseCode().equals(courseCode)) {
-                return "Course already in the curriculum";
+        if (coursesInUgCurriculum != null) {
+            for (UgCurriculumDTO course : coursesInUgCurriculum) {
+                if (course.courseCode().equals(courseCode)) {
+                    return "Course already in the curriculum";
+                }
             }
+        } else {
+            return "Error in getting the courses in the curriculum";
         }
 
         // add the course to the curriculum
@@ -519,14 +505,12 @@ public class OfficeStaff implements User {
         return "Course added to the curriculum successfully";
     }
 
-    private boolean isBatchValid(String batch) {
-        String regex = regexBatch;
-        return batch.matches(regex);
+    private boolean isBatchNotValid(String batch) {
+        return !batch.matches(regexBatch);
     }
 
     private boolean isCourseCodeValid(String courseCode) {
-        String regex = regexCourseCode;
-        return courseCode.matches(regex);
+        return courseCode.matches(regexCourseCode);
     }
 
     public String addBatch(String batch, int minCredits, int minElectiveCourses) {
@@ -535,14 +519,16 @@ public class OfficeStaff implements User {
         }
 
         // validate the batch using regex
-        if (!this.isBatchValid(batch)) {
+        if (this.isBatchNotValid(batch)) {
             return "Invalid batch";
         }
 
         // check if the batch is already in the curriculum
         UgCurriculumDTO[] coursesInUgCurriculum = CurriculumDAL.getCoursesInUGCurriculum(batch);
-        if (coursesInUgCurriculum.length > 0) {
+        if (coursesInUgCurriculum != null && coursesInUgCurriculum.length > 0) {
             return "Batch already in the curriculum";
+        } else if (coursesInUgCurriculum == null) {
+            return "Error in getting the courses in the curriculum";
         }
 
         // add the batch to the curriculum
@@ -561,7 +547,7 @@ public class OfficeStaff implements User {
         }
 
         switch (string) {
-            case "name":
+            case "name" -> {
                 // validate the name using regex
                 if (!this.isNameValid(name)) {
                     return "Invalid name";
@@ -572,9 +558,8 @@ public class OfficeStaff implements User {
                 if (!isNameUpdated) {
                     return "Error in updating the name";
                 }
-
-                break;
-            case "email":
+            }
+            case "email" -> {
                 // validate the email using regex
                 if (!this.isEmailValid(name)) {
                     return "Invalid email";
@@ -585,9 +570,8 @@ public class OfficeStaff implements User {
                 if (!isEmailUpdated) {
                     return "Error in updating the email";
                 }
-
-                break;
-            case "password":
+            }
+            case "password" -> {
                 // validate the password using regex
                 if (!this.isPasswordValid(name)) {
                     return "Password must contain at least 3 characters";
@@ -598,26 +582,24 @@ public class OfficeStaff implements User {
                 if (!isPasswordUpdated) {
                     return "Error in updating the password";
                 }
-                break;
-            default:
+            }
+            default -> {
                 return "Invalid option";
+            }
         }
         return "Profile updated successfully";
     }
 
     private boolean isPasswordValid(String name) {
-        String regex = regexPassword;
-        return name.matches(regex);
+        return name.matches(regexPassword);
     }
 
     private boolean isEmailValid(String name) {
-        String regex = regexEmail;
-        return name.matches(regex);
+        return name.matches(regexEmail);
     }
 
     private boolean isNameValid(String name) {
-        String regex = regexName;
-        return name.matches(regex);
+        return name.matches(regexName);
     }
 
 

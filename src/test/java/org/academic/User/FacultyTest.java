@@ -55,7 +55,7 @@ class FacultyTest {
 
     @Test
     void updateProfile() {
-//        TODO: implement
+//        TODO: implementlog
     }
 
     @Test
