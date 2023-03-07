@@ -57,7 +57,6 @@ public class Student implements User {
     public String[] getOptions() {
         return new String[]{"Enroll in a course", "Drop a course", "View prerequisites", "View courses offered", "View courses registered", "View grades", "Edit profile", "Logout"};
 /*
-        TODO: add the following options
          1. Enroll in a course
          2. Drop a course
          3. View prerequisites
@@ -110,7 +109,6 @@ public class Student implements User {
         if (!session.isSessionActive() || !session.getUserName().equals(this.userName) || !session.getUserType().equals(UserType.STUDENT)) {
             return "You are not authorized to enroll in the course";
         }
-        // TODO: check event
 
         // check if the course is offered in the current semester
         Course_Offerings_DTO[] courseOfferings = this.viewCoursesOffered();
@@ -192,7 +190,6 @@ public class Student implements User {
             return "You are not allowed to register for the course as it will exceed the allowed credits";
         }
 
-        // TODO: check grade of prequisite courses
         // check if the student has passed the prerequisites
         String[] prerequisites = Course_catalog.getCoursePrerequisites(courseCode);
         for (String prerequisite : prerequisites) {
@@ -345,7 +342,10 @@ public class Student implements User {
     6. Drop a course
     7. Log out
 */
-//    TODO: elective logic to be added
+
+    public double calculateGPA(GradeDTO[] grades) {
+        return StudentDAL.getCGPA(this.entryNumber, grades);
+    }
 
 
 }

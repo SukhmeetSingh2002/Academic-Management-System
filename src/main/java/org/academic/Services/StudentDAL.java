@@ -13,7 +13,6 @@ public class StudentDAL {
     private StudentDAL() {
     }
 
-    // TODO: add this in auth detatils
     public static boolean changePassword(String userName, String oldPassword, String newPassword) {
         String query = "UPDATE user_authentication SET password = '%s' WHERE user_name = '%s' AND password = '%s'".formatted(newPassword, userName, oldPassword);
         OutputHandler.logError(query);

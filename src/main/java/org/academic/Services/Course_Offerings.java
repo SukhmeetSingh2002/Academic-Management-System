@@ -66,7 +66,6 @@ public class Course_Offerings {
                 String semester = rs.getString("semester");
                 String grade = view_grade_course(student_entry_no, courseCode, semester);
                 
-//                TODO: Get the type of course from the ug curriculum
                 String type = "Program Course";
 
 //                Add the course offerings to the array list
@@ -86,7 +85,6 @@ public class Course_Offerings {
 
     //    view grade
     public static String view_grade_course(String student_entry_no, String course_code, String semester) {
-        // TODO: succes in eventlogger
         String grade = "none";
         String query = "SELECT grade FROM grade_entry WHERE student_entry_number = '" + student_entry_no + "' AND course_code = '" + course_code + "' AND semester = '" + semester + "'";
         try {

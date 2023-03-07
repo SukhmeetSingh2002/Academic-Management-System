@@ -32,7 +32,6 @@ public class Course_catalog {
     }
 
     public static String[] getCoursePrerequisites(String course_code) {
-//        TODO: add grade to the prerequisites
         ArrayList<String> coursePrerequisites = new ArrayList<>();
         String query = "SELECT * FROM prerequisites WHERE course_code = '" + course_code + "'";
         try {

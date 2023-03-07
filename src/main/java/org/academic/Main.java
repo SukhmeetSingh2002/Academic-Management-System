@@ -20,9 +20,7 @@ import java.util.Scanner;
 
 
 public class Main {
-    // TODO: add this.error to DTOs
     private static void handleStudent() {
-//        TODO: set entry number
         Student student = new Student(Session.getInstance().getUserName(), Session.getInstance().getPassword(), Session.getInstance().getStudentEntryNumber());
         String[] options = student.getOptions();
         Scanner scanner = new Scanner(System.in);
@@ -122,7 +120,6 @@ public class Main {
                 }
 //                view grades
                 case 6 -> {
-//                    TODO: calculate GPA
                     OutputHandler.print("View grades");
                     GradeDTO[] grades = student.viewGrades();
                     if (grades == null || grades.length == 0) {
@@ -139,6 +136,10 @@ public class Main {
                         gradesTable[i] = new String[]{grades[i].course_code(), grades[i].course_name(), grades[i].grade(), grades[i].semester()};
                     }
                     OutputHandler.table(gradesTable, new String[]{"Course code", "Course name", "Grade", "Semester"}, new int[]{12, 40, 10, 10});
+
+                    // get the GPA
+                    double gpa = student.calculateGPA(grades);
+                    OutputHandler.print("GPA is: " + gpa);
 
 
                 }
@@ -200,7 +201,6 @@ public class Main {
         System.out.print("Enter username: ");
         String username = scanner.nextLine();
         System.out.println("Username is: " + username);
-//        TODO: take password as input and don't show it on console
         System.out.print("Enter password: ");
         String password = scanner.nextLine();
 
@@ -304,7 +304,6 @@ public class Main {
                             year++;
                         }
                         currentSemester = semType + " " + year;
-                        // TODO: update semester in database
                         boolean res = officeStaff.updateSemester(currentSemester);
                         if (res) {
                             OutputHandler.print("Semester changed to: " + currentSemester);
@@ -579,7 +578,6 @@ public class Main {
     }
 
     private static void handleFaculty() {
-        // TODO: add username colum ub student and faculty table
         Faculty faculty = new Faculty(Session.getInstance().getUserName(), Session.getInstance().getPassword(),Session.getInstance().getFacultyID());
         String[] options = faculty.getOptions();
 
@@ -702,7 +700,6 @@ public class Main {
                             // OutputHandler.table(data2, header , new int[]{12, 20, 20, 10, 10});
 
 
-                            // TODO: check if the data is valid
                             // for (int i = 1; i < data.length - 1; i++) {
                             //     String[] row = data[i].split(",");
                             //     if (row.length != 5) {
@@ -766,30 +763,3 @@ public class Main {
     }
 }
 
-//└── src
-//    ├── main
-//    │   ├── java
-//    │   │   └── org
-//    │   │       └── academic
-//    │   │           ├── authentication
-//    │   │           │   └── User.java
-//    │   │           ├── cli
-//    │   │           │   ├── menu
-//    │   │           │   │   ├── AdminMenu.java
-//    │   │           │   │   ├── FacultyMenu.java
-//    │   │           │   │   └── StudentMenu.java
-//    │   │           │   └── Navigation.java
-//    │   │           ├── courses
-//    │   │           │   ├── Course.java
-//    │   │           │   ├── CourseCatalog.java
-//    │   │           │   └── CourseOffering.java
-//    │   │           ├── database
-//    │   │           │   └── Database.java
-//    │   │           ├── reports
-//    │   │           │   └── Transcript.java
-//    │   │           ├── students
-//    │   │           │   ├── Student.java
-//    │   │           │   └── StudentRecord.java
-//    │   │           └── Main.java
-//    │   └── resources
-//    │       └── database.properties

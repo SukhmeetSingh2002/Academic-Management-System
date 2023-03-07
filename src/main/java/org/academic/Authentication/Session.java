@@ -137,7 +137,6 @@ public class Session {
             this.firstName = OfficeStaffDAL.getFirstName(userName);
             this.email = OfficeStaffDAL.getEmail(userName);
         }
-        // TODO: set time in database
     }
 
     public void clearSession() {
