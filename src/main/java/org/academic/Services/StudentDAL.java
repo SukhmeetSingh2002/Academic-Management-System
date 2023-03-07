@@ -191,7 +191,7 @@ public class StudentDAL {
     }
 
     public static boolean dropCourse(String entryNumber, String courseCode, String currentSemester) {
-        String query = "DELETE FROM student_course_registration WHERE entry_number = '%s' AND course_code = '%s' AND semester = '%s'".formatted(entryNumber, courseCode, currentSemester);
+        String query = "DELETE FROM student_course_registration WHERE student_entry_number = '%s' AND course_code = '%s' AND semester = '%s'".formatted(entryNumber, courseCode, currentSemester);
         try {
             Connection conn = Connector.getConnection();
             conn.createStatement().executeUpdate(query);

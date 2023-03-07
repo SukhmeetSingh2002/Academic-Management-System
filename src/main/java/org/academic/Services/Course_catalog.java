@@ -93,6 +93,9 @@ public class Course_catalog {
             Connection conn = Connector.getConnection();
             conn.createStatement().executeUpdate(query);
             // add course prerequisites and corresponding grades
+            if (course_prerequisites.equals("")) {
+                return true;
+            }
             String[] course_prerequisites_array = course_prerequisites.split(",");
             for (int i = 0; i < course_prerequisites_array.length; i++) {
                 query = "INSERT INTO prerequisites VALUES ('" + course_code + "', '" + course_prerequisites_array[i].split(":")[0].strip() + "', '" + course_prerequisites_array[i].split(":")[1].strip() + "')";
@@ -118,6 +121,27 @@ public class Course_catalog {
         } catch (SQLException e) {
             OutputHandler.logError("Error in checking if course exists"+e.getMessage());
             return false;
+        }
+    }
+
+    public static void deleteCourse(String courseCode) {
+        String query = "DELETE FROM course_catalog WHERE course_code = '" + courseCode + "'";
+        try {
+            Connection conn = Connector.getConnection();
+            conn.createStatement().executeUpdate(query);
+        } catch (SQLException e) {
+            OutputHandler.logError("Error in deleting course"+e.getMessage());
+        }
+    }
+
+    public static void deleteCourseFromPrerequisites(String courseCode) {
+        String query = "DELETE FROM prerequisites WHERE course_code = '" + courseCode + "'";
+        try {
+            Connection conn = Connector.getConnection();
+            conn.createStatement().executeUpdate(query);
+        } catch (SQLException e) {
+            OutputHandler.logError("Error in deleting course from prerequisites"+e.getMessage());
+            OutputHandler.logError(query);
         }
     }
 }

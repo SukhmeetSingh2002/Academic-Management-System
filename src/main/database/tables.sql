@@ -268,7 +268,7 @@ VALUES ('EE101', 'Introduction to Electrical Engineering', '3-1-0-4'),
        ('CS202', 'Database Management Systems', '3-0-2-3'),
        ('MA101', 'Calculus and Differential Equations', '3-1-0-3'),
        ('MA201', 'Linear Algebra', '3-1-0-3'),
-       ('MA202', 'Probability and Statistics', '3-1-0-3');
+       ('MA202', 'Probability and Statistics', '3-1-0-3'),
        ('CS301', 'Operating Systems', '3-0-2-3'),
        ('CS302', 'Computer Networks', '3-0-2-3'),
        ('CS401', 'Artificial Intelligence', '3-0-2-4'),
@@ -404,4 +404,7 @@ VALUES (2021, 'EE101', 'Program Core'),
     (2023, 'EE402', 'Program Elective'),
     (2023, 'CS401', 'Program Elective'),
     (2023, 'CS402', 'Program Elective'),
-    (2023, 'MA301', 'Program Elective'),
+    (2023, 'MA301', 'Program Elective');
+
+-- Dummy data for grade
+INSERT INTO grade_entry (student_entry_number, course_code, semester, grade)
