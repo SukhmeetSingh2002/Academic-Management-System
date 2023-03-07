@@ -4,5 +4,5 @@ package org.academic.User;
  * @author Sukhmeet Singh
  */
 public enum UserType {
-    ADMIN, FACULTY, STUDENT , OFFICESTAFF
+    ADMIN, FACULTY, STUDENT , OFFICE_STAFF
 }

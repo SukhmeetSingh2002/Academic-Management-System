@@ -233,7 +233,7 @@ public class Main {
                 handleStudent();
             } else if (Session.getInstance().getUserType() == UserType.FACULTY) {
                 handleFaculty();
-            } else if (Session.getInstance().getUserType() == UserType.OFFICESTAFF) {
+            } else if (Session.getInstance().getUserType() == UserType.OFFICE_STAFF) {
                 // try {
                     handleOfficeStaff();
                 // } catch (Exception e) {
@@ -305,8 +305,12 @@ public class Main {
                         }
                         currentSemester = semType + " " + year;
                         // TODO: update semester in database
-                        officeStaff.updateSemester(currentSemester);
-                        OutputHandler.print("Semester changed to: " + currentSemester);
+                        boolean res = officeStaff.updateSemester(currentSemester);
+                        if (res) {
+                            OutputHandler.print("Semester changed to: " + currentSemester);
+                        } else {
+                            OutputHandler.print("Error changing semester");
+                        }
                     }
                     // ask whether to change event
                     OutputHandler.printS("Do you want to change to [ " + nextEvent + " ] (y/n): ");

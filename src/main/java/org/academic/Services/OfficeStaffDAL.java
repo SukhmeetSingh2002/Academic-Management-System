@@ -87,14 +87,17 @@ public class OfficeStaffDAL {
         return false;
     }
 
-    public static void updateSemester(String currentSemester) {
+    public static boolean updateSemester(String currentSemester) {
         String query = "INSERT INTO semester VALUES ('%s', '%s', true)".formatted(currentSemester, currentSemester.split(" ")[1]);
         try {
             Connection conn = Connector.getConnection();
             conn.createStatement().executeUpdate(query);
+            return true;
         } catch (Exception e) {
             OutputHandler.logError("Error while updating semester: " + e.getMessage());
+            OutputHandler.logError(query);
         }
+        return false;
 
     }
 
@@ -103,6 +106,8 @@ public class OfficeStaffDAL {
         try {
             Connection conn = Connector.getConnection();
             int rowsAffected = conn.createStatement().executeUpdate(query);
+            OutputHandler.logError("Rows affected: " + rowsAffected);
+            OutputHandler.logError(query);
             return rowsAffected == 1;
         } catch (Exception e) {
             OutputHandler.logError("Error while closing current semester: " + e.getMessage());
@@ -249,9 +254,7 @@ public class OfficeStaffDAL {
         }
         return false;
     }
-    
 
 
-    
-    
+//    for testing
 }
