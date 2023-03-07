@@ -73,38 +73,8 @@ public class OutputHandler {
         }
     }
 
-    public static void table(String[][] data, String[] headers) {
-        int[] columnWidths = new int[headers.length];
-        for (int i = 0; i < headers.length; i++) {
-            columnWidths[i] = headers[i].length();
-        }
-        for (String[] row : data) {
-            for (int i = 0; i < row.length; i++) {
-                if (row[i].length() > columnWidths[i]) {
-                    columnWidths[i] = row[i].length();
-                }
-            }
-        }
-        table(data, headers, columnWidths);
-    }
 
-    public static void table(String[][] data) {
-        String[] headers = new String[data[0].length];
-        for (int i = 0; i < headers.length; i++) {
-            headers[i] = "Column " + (i + 1);
-        }
-        table(data, headers);
-    }
-
-    public static void table(String[][] data, int[] columnWidths) {
-        String[] headers = new String[data[0].length];
-        for (int i = 0; i < headers.length; i++) {
-            headers[i] = "Column " + (i + 1);
-        }
-        table(data, headers, columnWidths);
-    }
-
-    // write to file in csv format (comma separated values) 
+    // write to file in csv format (comma separated values)
     public static void writeToFile(String fileName, GiveGradeDTO[] res) {
         ungradedCSV = Path.of(fileName);
         try {
